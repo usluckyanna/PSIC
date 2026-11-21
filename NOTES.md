@@ -22,7 +22,15 @@ node --env-file=.env server/local.mjs
 
 用「科学作业」展示发送、解释、原文依据和翻译，用「图书馆通知」展示 AI 如何标出缺失的集合时间。刷新页面展示保存结果。
 
-如果之后部署到 Vercel，导入 GitHub 仓库，使用项目根目录，并在项目的环境变量中设置 `KEYGEN_URL` 和 `KEYGEN_TOKEN`。`vercel.json` 已配置静态页面和服务器函数。
+## 部署到 Vercel
+
+1. 在 Vercel 选择 **Add New → Project**，导入 GitHub 上的 `usluckyanna/PSIC`。使用仓库根目录，保留默认构建设置。
+2. 在项目的 **Environment Variables** 中添加 `KEYGEN_URL` 和 `KEYGEN_TOKEN`，勾选 **Production**。如果希望预览版也能使用 AI，再勾选 **Preview**。以后更改这两个值时，需要重新部署。
+3. 点 **Deploy**。打开 Vercel 提供的网址，选择「科学作业」并点「发送给 AI」。看到学习指南后刷新，确认指南仍在同一个浏览器里。
+
+`vercel.json` 将 `public/` 作为页面目录，`/api/chat` 由 Node.js 函数运行。函数把 `BRIEF.md` 随服务器代码打包。只有服务器端的 `getKey()` 会读取这两个环境变量并获取 AI 密钥。无需额外的环境变量、数据库或自定义构建命令。
+
+浏览器按网址保存数据。本机网址保存的内容会留在本机网址，Vercel 网址有自己的保存记录。
 
 ## 可能稍后添加
 

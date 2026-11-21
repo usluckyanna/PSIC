@@ -2,6 +2,6 @@
   "framework": null,
   "outputDirectory": "public",
   "functions": {
-    "api/chat.mjs": { "maxDuration": 90, "includeFiles": "BRIEF.md" }
+    "api/chat.mjs": { "maxDuration": 60, "includeFiles": "BRIEF.md" }
   }
 }
