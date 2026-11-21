@@ -6,6 +6,7 @@ const assets = new Map([
   ['/', ['index.html', 'text/html']],
   ['/app.js', ['app.js', 'text/javascript']],
   ['/data.js', ['data.js', 'text/javascript']],
+  ['/languages.mjs', ['languages.mjs', 'text/javascript']],
   ['/style.css', ['style.css', 'text/css']],
 ]);
 

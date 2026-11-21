@@ -1,7 +1,7 @@
 import { requestAI } from '../server/requestAI.mjs';
+import { languages } from '../public/languages.mjs';
 
 const maxBodyBytes = 32 * 1024;
-const languages = new Set(['简体中文', 'English', 'Español']);
 const fallback = '暂时无法解释这条信息。你可以先上网查找不懂的词，再向老师确认具体要求。';
 
 function reply(res, status, body) {
@@ -32,19 +32,27 @@ export default async function chat(req, res) {
     return reply(res, 405, { error: { message: '请点击「发送给 AI」。' } });
   }
 
-  let source, language;
+  let source, language, deadline;
   try {
-    ({ source, language } = await readBody(req));
+    ({ source, language, deadline = '' } = await readBody(req));
   } catch {
     return reply(res, 400, { error: { message: '无法读取输入，请重新发送。' } });
   }
   if (typeof source !== 'string' || !source.trim() || source.length > 3000 ||
-      !languages.has(language)) {
+      !languages.includes(language)) {
     return reply(res, 400, { error: { message: '请输入 3,000 字符以内的老师信息，并选择阅读语言。' } });
+  }
+  if (deadline !== '') {
+    const date = typeof deadline === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(deadline)
+      ? new Date(deadline) : null;
+    if (!date || !Number.isFinite(date.valueOf()) || date.toISOString().slice(0, 10) !== deadline ||
+        deadline < '0001-01-01') {
+      return reply(res, 400, { error: { message: '请选择有效的截止日期，或将它留空。' } });
+    }
   }
 
   try {
-    const { result, keyError } = await requestAI(source.trim(), language);
+    const { result, keyError } = await requestAI(source.trim(), language, deadline);
     if (keyError) return reply(res, 502, { error: { message: keyError } });
     return reply(res, 200, { result });
   } catch {

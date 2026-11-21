@@ -21,11 +21,13 @@ h2 { margin: 0; font-size: 1.3rem; }
 h3 { margin: .9rem 0 .35rem; font-size: 1rem; }
 .note, footer { color: var(--muted); font-size: .875rem; }
 .note { margin: .3rem 0 .85rem; }
-textarea, select, button { font: inherit; }
+textarea, input, select, button { font: inherit; }
 textarea { display: block; width: 100%; min-height: 160px; resize: vertical; padding: 13px; border: 1px solid #b6c6d9; border-radius: 10px; color: inherit; background: #f8fbff; }
+.deadline-field { margin-top: 14px; }
+.deadline-field .note { margin-bottom: 0; }
 .controls { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
 label { font-size: .875rem; font-weight: 700; }
-select { display: block; margin-top: 4px; min-height: 42px; padding: 5px 10px; background: #fff; color: inherit; border: 1px solid #b6c6d9; border-radius: 8px; }
+select, input[type="date"] { display: block; margin-top: 4px; min-height: 42px; padding: 5px 10px; background: #fff; color: inherit; border: 1px solid #b6c6d9; border-radius: 8px; }
 button { cursor: pointer; }
 #send { background: var(--blue); color: #fff; padding: 9px 17px; border: 1px solid transparent; border-radius: 9px; min-height: 44px; font-weight: 700; }
 button:disabled { opacity: .65; cursor: wait; }

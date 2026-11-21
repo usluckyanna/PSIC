@@ -25,13 +25,14 @@
         <form id="work">
           <label for="source" class="sr-only">老师的通知或作业</label>
           <textarea id="source" maxlength="3000" required aria-describedby="privacy" placeholder="在这里粘贴老师的通知或作业…"></textarea>
+          <div class="deadline-field">
+            <label for="deadline">截止日期（可选）</label>
+            <input type="date" id="deadline" min="0001-01-01" max="9999-12-31" aria-describedby="deadline-help">
+            <p id="deadline-help" class="note">如果你知道截止日期，可以填在这里。</p>
+          </div>
           <div class="controls">
             <label for="language">阅读语言
-              <select id="language">
-                <option>简体中文</option>
-                <option>English</option>
-                <option>Español</option>
-              </select>
+              <select id="language"></select>
             </label>
             <button id="send" type="submit">发送给 AI</button>
           </div>
@@ -47,7 +48,8 @@
         <p id="status" role="status"></p>
         <div id="empty">发送后，你会在这里看到解释、翻译和行动清单。</div>
         <div id="result" hidden>
-          <p id="summary"></p>
+          <p id="summary" dir="auto"></p>
+          <p id="entered-deadline" hidden>你填写的截止日期：<time id="deadline-value"></time></p>
           <h3>行动清单</h3>
           <p id="no-steps" hidden>原文没有可列出的明确行动。</p>
           <ul id="steps"></ul>
@@ -57,11 +59,11 @@
             <ul id="questions"></ul>
             <p id="omitted" hidden>有些建议找不到对应的原文，已从清单中省略。</p>
           </aside>
-          <details><summary>查看完整翻译</summary><p id="translation"></p></details>
+          <details><summary>查看完整翻译</summary><p id="translation" dir="auto"></p></details>
         </div>
       </section>
     </div>
-    <footer>目前仅保存在此计算机上 · 发送时，正文会交给 AI 处理</footer>
+    <footer>目前仅保存在此计算机上 · 发送时，正文和填写的截止日期会交给 AI 处理</footer>
   </main>
 </body>
 </html>

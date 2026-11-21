@@ -1,0 +1,18 @@
+export const languages = [
+  '简体中文',
+  '繁體中文',
+  'English',
+  'Español',
+  'Français',
+  'Deutsch',
+  'Italiano',
+  'Português',
+  '日本語',
+  '한국어',
+  'Tiếng Việt',
+  'Tagalog',
+  'العربية',
+  'हिन्दी',
+  'Русский',
+  'Українська',
+];
