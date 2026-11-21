@@ -22,6 +22,13 @@ node --env-file=.env server/local.mjs
 
 用「科学作业」展示发送、解释、原文依据和翻译，用「图书馆通知」展示 AI 如何标出缺失的集合时间。刷新页面展示保存结果。
 
+### 两步测试粘贴、翻译和解释
+
+1. 在 WorkGuide 粘贴这条虚构笔记：`Please bring your science notebook on Friday. The classroom will be announced later.` 选择「简体中文」，点击「发送给 AI」。
+2. 查看一句话解释，再展开「查看完整翻译」。两处都应说清楚周五要带科学笔记本，完整翻译还应保留「教室稍后公布」。
+
+已在本机 Chrome 用剪贴板和真实 AI 验证，也复查了行动清单、待确认事项、示例加载和刷新后的保存。
+
 ## 部署到 Vercel
 
 1. 在 Vercel 选择 **Add New → Project**，导入 GitHub 上的 `usluckyanna/PSIC`。使用仓库根目录，保留默认构建设置。
