@@ -31,6 +31,13 @@ node --env-file=.env server/local.mjs
 
 已在本机 Chrome 用剪贴板和真实 AI 验证，也复查了行动清单、待确认事项、示例加载和刷新后的保存。
 
+### 两步测试待办清单和截止日期
+
+1. 粘贴这条虚构笔记，选择「English」，点击「发送给 AI」：`Submit the science worksheet by December 3, 2026 at 3 p.m. in the class portal. Return the field trip form by December 7, 2026. Bring your library card to the next visit.`
+2. 在「行动清单」核对三项任务。科学作业的截止时间是 12 月 3 日下午 3 点，须在班级平台提交；外出活动表格的截止日期是 12 月 7 日；带借书卡这一项没有具体日期。每项下方都能看到原文。
+
+本机真实 AI 测试通过，并复查了手动填写日期、翻译和刷新后保留清单。
+
 ## 部署到 Vercel
 
 1. 在 Vercel 选择 **Add New → Project**，导入 GitHub 上的 `usluckyanna/PSIC`。使用仓库根目录，保留默认构建设置。
