@@ -1,7 +1,8 @@
-import { getKey } from '../server/getKey.mjs';
+import { requestAI } from '../server/requestAI.mjs';
 
-const model = 'gpt-5.6-luna';
-const maxBodyBytes = 128 * 1024;
+const maxBodyBytes = 32 * 1024;
+const languages = new Set(['简体中文', 'English', 'Español']);
+const fallback = '暂时无法解释这条信息。你可以先上网查找不懂的词，再向老师确认具体要求。';
 
 function reply(res, status, body) {
   res.writeHead(status, {
@@ -12,80 +13,41 @@ function reply(res, status, body) {
 }
 
 async function readBody(req) {
-  if (Number(req.headers['content-length']) > maxBodyBytes) {
-    throw new Error('Request is too large.');
-  }
-  if (req.body !== undefined) {
-    return typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-  }
-  const chunks = [];
+  if (Number(req.headers['content-length']) > maxBodyBytes) throw new Error('Body too large');
+  const body = req.body;
+  if (body !== undefined) return typeof body === 'string' ? JSON.parse(body) : body;
   let size = 0;
+  const chunks = [];
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > maxBodyBytes) throw new Error('Request is too large.');
+    if (size > maxBodyBytes) throw new Error('Body too large');
     chunks.push(chunk);
   }
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
-async function complete(messages, key) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ model, messages, max_completion_tokens: 2048 }),
-    redirect: 'error',
-    signal: AbortSignal.timeout(30_000),
-  });
-  return { response, data: await response.json().catch(() => null) };
-}
-
 export default async function chat(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
-    return reply(res, 405, { error: { message: 'Use POST to send a message.' } });
+    return reply(res, 405, { error: { message: '请点击「发送给 AI」。' } });
   }
 
-  let messages;
+  let source, language;
   try {
-    ({ messages } = await readBody(req));
+    ({ source, language } = await readBody(req));
   } catch {
-    return reply(res, 400, { error: { message: 'Send a valid JSON message.' } });
+    return reply(res, 400, { error: { message: '无法读取输入，请重新发送。' } });
   }
-  if (!Array.isArray(messages) || messages.length > 12 ||
-      messages.at(-1)?.role !== 'user' ||
-      messages.some((message, index) =>
-        message?.role !== (index % 2 ? 'assistant' : 'user') ||
-        typeof message.content !== 'string' || !message.content.trim() ||
-        message.content.length > 3000)) {
-    return reply(res, 400, { error: { message: 'Send up to 12 alternating messages, each 3,000 characters or fewer.' } });
+  if (typeof source !== 'string' || !source.trim() || source.length > 3000 ||
+      !languages.has(language)) {
+    return reply(res, 400, { error: { message: '请输入 3,000 字符以内的老师信息，并选择阅读语言。' } });
   }
 
-  const conversation = messages.map(({ role, content }) => ({ role, content }));
-  let key;
-  let result;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      key = await getKey({ invalidKey: key });
-    } catch (error) {
-      return reply(res, 502, { error: { message: error.message } });
-    }
-    try {
-      result = await complete(conversation, key);
-    } catch {
-      return reply(res, 502, { error: { message: 'Could not reach OpenAI. Try again.' } });
-    }
-    if (result.data?.error?.code !== 'invalid_api_key') break;
+  try {
+    const { result, keyError } = await requestAI(source.trim(), language);
+    if (keyError) return reply(res, 502, { error: { message: keyError } });
+    return reply(res, 200, { result });
+  } catch {
+    return reply(res, 502, { error: { message: fallback } });
   }
-  if (!result.response.ok) {
-    console.error('OpenAI chat failed with HTTP status', result.response.status);
-    return reply(res, 502, { error: { message: 'OpenAI could not complete the request.' } });
-  }
-  const content = result.data?.choices?.[0]?.message?.content;
-  if (typeof content !== 'string' || !content.trim()) {
-    return reply(res, 502, { error: { message: 'OpenAI returned an empty reply.' } });
-  }
-  return reply(res, 200, { message: content });
 }

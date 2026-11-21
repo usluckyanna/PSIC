@@ -1,25 +1,29 @@
-# MindDo AI key
+# WorkGuide 版本 1
 
-The AI key comes from `getKey()` in `server/getKey.mjs`. The server reads `KEYGEN_URL` and `KEYGEN_TOKEN` from its environment. Conversation history is stored in browser local storage for the current site.
+## 如何运行
 
-Call `await getKey()` from server code before an OpenAI request. If OpenAI returns the `invalid_api_key` error, call `await getKey({ invalidKey: keyUsedForThatRequest })` and retry the OpenAI request once with the returned key. Keep both credentials on the server and out of logs.
+在项目文件夹里用 Node.js 22 或更新版本运行：
 
-If `getKey()` throws, show its `error.message` to the user and stop the request. The helper logs MindDo's `error.fix` when provided and makes one lookup attempt per refresh. Expiration can be an ISO date-time string or Unix milliseconds.
+```sh
+node --env-file=.env server/local.mjs
+```
 
-## OpenAI model
+打开 <http://127.0.0.1:3000>。AI 密钥来自服务器端 `getKey()`，模型为 `gpt-5.6-luna`。本机的 `.env` 提供 `KEYGEN_URL` 和 `KEYGEN_TOKEN`，并由 Git 忽略。
 
-The MindDo-issued key can access `gpt-5.6-luna`.
+## 已完成
 
-## Run locally
+1. 粘贴老师的通知或作业，或载入一个虚构示例。选择阅读语言后，点击「发送给 AI」才会请求 OpenAI。
+2. 查看一句话解释、带原文依据的行动清单和完整翻译。
+3. 查看需要向老师核对的内容。刷新页面可恢复最近的输入和指南。
 
-1. Use Node.js 22 or newer and set `KEYGEN_URL` and `KEYGEN_TOKEN` in the root `.env`.
-2. Run `node --env-file=.env server/local.mjs` from the project root.
-3. Open <http://127.0.0.1:3000>, send a message, and reload to check that the conversation stays in the browser.
+目前仅保存在此计算机上。输入和最近的结果保存在当前浏览器的 localStorage。发送时，通知正文会交给 AI 处理；演示请使用虚构示例。
 
-## Deploy to Vercel
+## 下一步
 
-1. In Vercel, import the GitHub repository as a new project. Use the repository root and leave the build command at its default.
-2. Add `KEYGEN_URL` and `KEYGEN_TOKEN` under Environment Variables for Production. Select Preview too if preview deployments should have AI access.
-3. Deploy and test a message on the Vercel URL. Redeploy after changing either environment variable.
+用「科学作业」展示发送、解释、原文依据和翻译，用「图书馆通知」展示 AI 如何标出缺失的集合时间。刷新页面展示保存结果。
 
-`vercel.json` selects the static `public/` directory. Vercel runs `api/chat.mjs` as the Node.js function for `/api/chat`. Keep `.env` local and out of Git.
+如果之后部署到 Vercel，导入 GitHub 仓库，使用项目根目录，并在项目的环境变量中设置 `KEYGEN_URL` 和 `KEYGEN_TOKEN`。`vercel.json` 已配置静态页面和服务器函数。
+
+## 可能稍后添加
+
+- 还没有。

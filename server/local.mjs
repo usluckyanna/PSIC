@@ -5,6 +5,7 @@ import chat from '../api/chat.mjs';
 const assets = new Map([
   ['/', ['index.html', 'text/html']],
   ['/app.js', ['app.js', 'text/javascript']],
+  ['/data.js', ['data.js', 'text/javascript']],
   ['/style.css', ['style.css', 'text/css']],
 ]);
 
@@ -24,4 +25,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(500).end('Could not load the page');
   }
-}).listen(3000, '127.0.0.1', () => console.log('PSIC is running at http://127.0.0.1:3000'));
+}).listen(3000, '127.0.0.1', () => console.log('WorkGuide is running at http://127.0.0.1:3000'));

@@ -1,89 +1,114 @@
-const storageKey = 'psic.chat.v1';
-const form = document.querySelector('form');
-const history = document.querySelector('#history');
-const input = document.querySelector('#message');
-const send = document.querySelector('#send');
-const clear = document.querySelector('#clear');
-const status = document.querySelector('#status');
-let messages = [];
+import { examples, loadWorkspace, saveWorkspace } from './data.js';
 
-try {
-  const saved = JSON.parse(localStorage.getItem(storageKey));
-  if (Array.isArray(saved) && saved.length % 2 === 0 &&
-      saved.every((entry, index) => entry?.role === (index % 2 ? 'assistant' : 'user') &&
-        typeof entry.content === 'string' && entry.content.trim())) {
-    messages = saved;
-  }
-} catch {
-  status.textContent = 'Saved chat could not be loaded.';
-}
+const find = (id) => document.getElementById(id);
+const form = find('work');
+const source = find('source');
+const language = find('language');
+const send = find('send');
+const status = find('status');
+const empty = find('empty');
+const resultPanel = find('result');
+const fallback = '暂时无法解释这条信息。你可以先上网查找不懂的词，再向老师确认具体要求。';
+const workspace = loadWorkspace();
 
-function render(conversation = messages) {
-  history.replaceChildren();
-  for (const { role, content } of conversation) {
-    const item = document.createElement('article');
-    item.className = role;
-    const name = document.createElement('strong');
-    name.textContent = role === 'user' ? 'You' : 'Luna';
-    const text = document.createElement('p');
-    text.textContent = content;
-    item.append(name, text);
-    history.append(item);
+source.value = workspace.source ?? '';
+language.value = workspace.language ?? '简体中文';
+if (!language.value) language.selectedIndex = 0;
+
+function showResult() {
+  const saved = workspace.last;
+  const result = saved?.source === source.value.trim() && saved.language === language.value
+    ? saved.result : null;
+  empty.hidden = Boolean(result);
+  resultPanel.hidden = !result;
+  if (!result) return;
+
+  find('summary').textContent = result.summary;
+  find('translation').textContent = result.translation;
+  find('no-steps').hidden = result.steps.length > 0;
+  find('omitted').hidden = !result.omittedSteps;
+  const steps = find('steps');
+  steps.replaceChildren();
+  for (const step of result.steps) {
+    const item = document.createElement('li');
+    const evidence = document.createElement('small');
+    evidence.textContent = `原文：${step.evidence}`;
+    item.append(step.action, evidence);
+    steps.append(item);
   }
-  history.scrollTop = history.scrollHeight;
-  clear.disabled = !messages.length;
+  const questions = find('questions');
+  questions.replaceChildren();
+  questions.hidden = !result.questions.length;
+  for (const question of result.questions) {
+    const item = document.createElement('li');
+    item.textContent = question;
+    questions.append(item);
+  }
 }
 
 function save() {
+  workspace.source = source.value;
+  workspace.language = language.value;
   try {
-    if (messages.length) localStorage.setItem(storageKey, JSON.stringify(messages));
-    else localStorage.removeItem(storageKey);
+    saveWorkspace(workspace);
   } catch {
-    status.textContent = 'This browser could not save the chat.';
+    status.textContent = '浏览器暂时无法保存这份指南。';
   }
 }
 
-clear.addEventListener('click', () => {
-  if (!confirm('Clear the conversation from this browser?')) return;
-  messages = [];
+function updateInput() {
   status.textContent = '';
+  showResult();
   save();
-  render();
+}
+
+source.addEventListener('input', updateInput);
+language.addEventListener('change', updateInput);
+
+const exampleButtons = examples.map(({ title, description, source: sample }) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  const subtitle = document.createElement('small');
+  subtitle.textContent = description;
+  button.append(title, subtitle);
+  button.addEventListener('click', () => {
+    source.value = sample;
+    updateInput();
+    source.focus();
+  });
+  find('examples').append(button);
+  return button;
 });
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const content = input.value.trim();
-  if (!content || send.disabled) return;
-  const turn = { role: 'user', content };
-  const conversation = [...messages.slice(-10), turn].map((entry) => ({
-    role: entry.role,
-    content: entry.content.slice(0, 3000),
-  }));
-  render([...messages, turn]);
-  send.disabled = clear.disabled = input.disabled = true;
-  status.textContent = 'Luna is replying…';
+  const input = source.value.trim();
+  if (!input || send.disabled) return;
+  const selectedLanguage = language.value;
+  const controls = [source, language, send, ...exampleButtons];
+  for (const control of controls) control.disabled = true;
+  send.textContent = status.textContent = '正在思考……';
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: conversation }),
+      body: JSON.stringify({ source: input, language: selectedLanguage }),
     });
-    const result = await response.json().catch(() => null);
-    if (!response.ok || typeof result?.message !== 'string') {
-      throw new Error(result?.error?.message || 'The chat service did not respond.');
+    const body = await response.json().catch(() => null);
+    if (!response.ok || !body?.result) {
+      status.textContent = body?.error?.message || fallback;
+      return;
     }
-    messages.push(turn, { role: 'assistant', content: result.message });
-    input.value = '';
-    status.textContent = '';
+    workspace.last = { source: input, language: selectedLanguage, result: body.result };
+    showResult();
+    status.textContent = '指南已生成。';
     save();
-  } catch (error) {
-    status.textContent = error.message || 'Your message could not be sent.';
+  } catch {
+    status.textContent = fallback;
   } finally {
-    input.disabled = send.disabled = false;
-    render();
-    input.focus();
+    for (const control of controls) control.disabled = false;
+    send.textContent = '发送给 AI';
   }
 });
 
-render();
+showResult();

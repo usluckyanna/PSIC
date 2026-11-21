@@ -1,30 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hans">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PSIC Chat</title>
+  <title>WorkGuide</title>
   <link rel="stylesheet" href="/style.css">
-  <script src="/app.js" defer></script>
+  <script type="module" src="/app.js"></script>
 </head>
 <body>
   <main>
-    <header>
-      <div>
-        <h1>PSIC Chat</h1>
-        <p>gpt-5.6-luna <span aria-hidden="true">·</span> Saved in this browser</p>
+    <header class="hero">
+      <div class="brand">
+        <svg aria-hidden="true" viewBox="0 0 32 32" fill="none"><path d="M16 9c-3-2-7-3-11-2v17c4-1 8 0 11 2 3-2 7-3 11-2V7c-4-1-8 0-11 2Zm0 0v17M9 12h3m-3 5h3m8-5h3m-3 5h3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>WorkGuide</span>
       </div>
-      <button type="button" id="clear" class="secondary">Clear chat</button>
+      <h1>读懂老师的信息</h1>
+      <p>翻译老师的通知和作业，整理成一份你能照着做的清单。</p>
     </header>
-    <section id="history" aria-label="Conversation" role="log" tabindex="0"></section>
-    <form>
-      <label for="message">Message</label>
-      <div class="composer">
-        <textarea id="message" rows="2" maxlength="3000" required placeholder="Ask anything"></textarea>
-        <button id="send" type="submit">Send</button>
-      </div>
-      <p id="status" role="status"></p>
-    </form>
+
+    <div class="workspace">
+      <section class="panel">
+        <h2>老师的原文</h2>
+        <p class="note" id="privacy">发送前，请删除姓名、学号等个人信息。</p>
+        <form id="work">
+          <label for="source" class="sr-only">老师的通知或作业</label>
+          <textarea id="source" maxlength="3000" required aria-describedby="privacy" placeholder="在这里粘贴老师的通知或作业…"></textarea>
+          <div class="controls">
+            <label for="language">阅读语言
+              <select id="language">
+                <option>简体中文</option>
+                <option>English</option>
+                <option>Español</option>
+              </select>
+            </label>
+            <button id="send" type="submit">发送给 AI</button>
+          </div>
+        </form>
+        <section class="samples" aria-labelledby="examples-title">
+          <h3 id="examples-title">试用虚构示例</h3>
+          <div id="examples"></div>
+        </section>
+      </section>
+
+      <section class="panel results" aria-labelledby="result-title">
+        <h2 id="result-title">学习指南</h2>
+        <p id="status" role="status"></p>
+        <div id="empty">发送后，你会在这里看到解释、翻译和行动清单。</div>
+        <div id="result" hidden>
+          <p id="summary"></p>
+          <h3>行动清单</h3>
+          <p id="no-steps" hidden>原文没有可列出的明确行动。</p>
+          <ul id="steps"></ul>
+          <aside class="check">
+            <h3>发送或提交前请核对</h3>
+            <p>AI 可能理解错误。请对照老师的原文；不明确的日期、地点或要求请向老师确认。</p>
+            <ul id="questions"></ul>
+            <p id="omitted" hidden>有些建议找不到对应的原文，已从清单中省略。</p>
+          </aside>
+          <details><summary>查看完整翻译</summary><p id="translation"></p></details>
+        </div>
+      </section>
+    </div>
+    <footer>目前仅保存在此计算机上 · 发送时，正文会交给 AI 处理</footer>
   </main>
 </body>
 </html>
